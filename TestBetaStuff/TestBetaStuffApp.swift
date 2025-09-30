@@ -1,10 +1,3 @@
-//
-//  TestBetaStuffApp.swift
-//  TestBetaStuff
-//
-//  Created by Martin Bueno on 18/6/25.
-//
-
 import SwiftUI
 
 @main
