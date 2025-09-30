@@ -8,7 +8,6 @@ class LLMViewModel: ObservableObject {
   @Published var currentSession: LanguageModelSession?
   @Published var availability: SystemLanguageModel.Availability?
   @Published var llmResponse: String?
-  @Published var tripResponse: TripModel?
 
   func checkFoundationModelsAvailability() {
     print("lightweight availability check \(model.isAvailable)")
@@ -20,12 +19,10 @@ class LLMViewModel: ObservableObject {
 
   func startLLMSession() {
     Task {
-      let instructions = "Use as much context from other apps as possible, focusing on contacts"
-      let session = LanguageModelSession(instructions: instructions)
+//      let instructions = ""
+//      let session = LanguageModelSession(instructions: instructions)
+      let session = LanguageModelSession()
       currentSession = session
-      await MainActor.run {
-
-      }
     }
   }
 
@@ -39,16 +36,5 @@ class LLMViewModel: ObservableObject {
         print("Failed to get LLM response")
       }
     }
-  }
-
-  func searchForTrips() async {
-    guard let currentSession else { return }
-    let options = GenerationOptions(temperature: 2.0)
-    let response = try? await currentSession.respond(
-      to: "Find a less known european country to make a trip to and a list of cities worth visiting in that country",
-      generating: TripModel.self,
-      options: options
-    )
-    tripResponse = response?.content
   }
 }

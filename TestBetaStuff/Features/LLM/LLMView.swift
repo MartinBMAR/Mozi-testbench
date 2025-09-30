@@ -35,19 +35,7 @@ struct LLMView: View {
       if viewModel.currentSession?.isResponding ?? false {
         ProgressView()
       } else {
-//        Button(action: { Task { await viewModel.searchForTrips() } }) {
-//          Text("Search for a country to travel to")
-//        }
-//        tripsView
         promptView
-      }
-    }
-
-    var tripsView: some View {
-      VStack(alignment: .leading, spacing: 16) {
-        if let trip = viewModel.tripResponse {
-          TripView(vo: trip)
-        }
       }
     }
 
