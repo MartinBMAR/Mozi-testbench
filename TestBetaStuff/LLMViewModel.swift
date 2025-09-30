@@ -3,7 +3,7 @@ import Foundation
 import FoundationModels
 import SwiftUI
 
-class ViewModel: ObservableObject {
+class LLMViewModel: ObservableObject {
   private var model = SystemLanguageModel.default
   @Published var currentSession: LanguageModelSession?
   @Published var availability: SystemLanguageModel.Availability?
@@ -24,7 +24,7 @@ class ViewModel: ObservableObject {
       let session = LanguageModelSession(instructions: instructions)
       currentSession = session
       await MainActor.run {
-        
+
       }
     }
   }

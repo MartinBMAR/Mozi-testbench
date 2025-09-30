@@ -1,8 +1,8 @@
 import FoundationModels
 import SwiftUI
 
-struct ContentView: View {
-  @StateObject private var viewModel = ViewModel()
+struct LLMView: View {
+  @StateObject private var viewModel = LLMViewModel()
 
   var body: some View {
     VStack(spacing: 16) {
@@ -28,7 +28,7 @@ struct ContentView: View {
   }
 
   struct LLMSessionView: View {
-    @ObservedObject var viewModel: ViewModel
+    @ObservedObject var viewModel: LLMViewModel
     @State private var promptText: String = ""
 
     var body: some View {
@@ -75,8 +75,4 @@ struct ContentView: View {
       }
     }
   }
-}
-
-#Preview {
-  ContentView()
 }

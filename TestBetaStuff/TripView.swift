@@ -6,14 +6,14 @@ public struct TripView: View {
   public init(vo: TripModel) {
     self.vo = vo
   }
-  
+
   public var body: some View {
     VStack(alignment: .leading, spacing: 8) {
       Text(vo.country)
         .font(.title2)
         .fontWeight(.semibold)
         .padding(.bottom, 4)
-      
+
       ForEach(vo.cities, id: \.self) { city in
         Text("• \(city)")
           .font(.body)
