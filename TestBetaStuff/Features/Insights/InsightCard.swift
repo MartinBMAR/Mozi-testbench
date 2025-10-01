@@ -2,6 +2,10 @@ import SwiftUI
 
 struct InsightCard: View {
   let insight: Insight
+  @State private var reminderService = ReminderService()
+  @State private var isCreatingReminder = false
+  @State private var reminderCreated = false
+  @State private var reminderError: String?
 
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
@@ -32,22 +36,55 @@ struct InsightCard: View {
 
       // Suggested Action (if present)
       if let action = insight.suggestedAction, !action.isEmpty {
-        HStack(spacing: 6) {
-          Image(systemName: "lightbulb.fill")
-            .font(.caption)
-          Text(action)
-            .font(.callout)
-            .fixedSize(horizontal: false, vertical: true)
+        VStack(alignment: .leading, spacing: 8) {
+          HStack(spacing: 6) {
+            Image(systemName: "lightbulb.fill")
+              .font(.caption)
+            Text(action)
+              .font(.callout)
+              .fixedSize(horizontal: false, vertical: true)
+          }
+          .foregroundColor(.orange)
+
+          // Add to Reminders button
+          Button(action: {
+            Task {
+              await createReminder(action: action)
+            }
+          }) {
+            HStack(spacing: 4) {
+              if isCreatingReminder {
+                ProgressView()
+                  .scaleEffect(0.7)
+              } else if reminderCreated {
+                Image(systemName: "checkmark.circle.fill")
+                  .foregroundColor(.green)
+                Text("Added to Reminders")
+                  .font(.caption)
+                  .foregroundColor(.green)
+              } else {
+                Image(systemName: "plus.circle.fill")
+                Text("Add to Reminders")
+                  .font(.caption)
+              }
+            }
+            .padding(.horizontal, 8)
+            .padding(.vertical, 4)
+            .background(reminderCreated ? Color.green.opacity(0.1) : Color.blue.opacity(0.1))
+            .cornerRadius(6)
+          }
+          .disabled(isCreatingReminder || reminderCreated)
+
+          // Error message
+          if let error = reminderError {
+            Text(error)
+              .font(.caption2)
+              .foregroundColor(.red)
+              .fixedSize(horizontal: false, vertical: true)
+          }
         }
-        .foregroundColor(.orange)
         .padding(.top, 4)
       }
-
-      // Evidence
-      Text(insight.evidence)
-        .font(.caption2)
-        .foregroundColor(.secondary.opacity(0.7))
-        .padding(.top, 4)
     }
     .padding()
     .background(
@@ -113,29 +150,24 @@ struct InsightCard: View {
     default: return .gray
     }
   }
-}
 
-// MARK: - Preview
+  // MARK: - Reminder Creation
 
-#Preview {
-  VStack(spacing: 16) {
-    InsightCard(insight: Insight(
-      category: "ACTION_REMINDER",
-      priority: "HIGH",
-      title: "Follow up about job interview",
-      description: "Sarah mentioned her final interview was scheduled for this week. A follow-up message shows you care about important moments in her life.",
-      evidence: "From notes: Note 1, Note 3",
-      suggestedAction: "Send a text asking how the interview went"
-    ))
+  private func createReminder(action: String) async {
+    isCreatingReminder = true
+    reminderError = nil
 
-    InsightCard(insight: Insight(
-      category: "CONVERSATION_STARTER",
-      priority: "MEDIUM",
-      title: "Ask about hiking plans",
-      description: "John expressed interest in visiting national parks. This could be a great conversation topic for your next meetup.",
-      evidence: "From notes: Note 2",
-      suggestedAction: nil
-    ))
+    do {
+      let reminderTitle = action
+      let reminderNotes = "\(insight.title)\n\n\(insight.description)"
+
+      try await reminderService.createReminder(title: reminderTitle, notes: reminderNotes)
+
+      reminderCreated = true
+    } catch {
+      reminderError = error.localizedDescription
+    }
+
+    isCreatingReminder = false
   }
-  .padding()
 }

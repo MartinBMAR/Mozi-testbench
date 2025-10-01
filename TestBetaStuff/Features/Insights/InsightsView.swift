@@ -5,6 +5,8 @@ struct InsightsView: View {
   @ObservedObject var llmViewModel: LLMViewModel
   let onDismiss: () -> Void
 
+  @Environment(\.dismiss) var dismiss
+
   var body: some View {
     NavigationView {
       Group {
@@ -24,6 +26,7 @@ struct InsightsView: View {
       .toolbar {
         ToolbarItem(placement: .navigationBarTrailing) {
           Button("Done") {
+            dismiss()
             onDismiss()
           }
         }

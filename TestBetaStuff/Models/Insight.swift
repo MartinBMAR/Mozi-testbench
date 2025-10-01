@@ -34,7 +34,6 @@ struct Insight: Identifiable, Codable {
   var priority: String
   var title: String
   var description: String
-  var evidence: String
   var suggestedAction: String?
 
   // Computed properties for UI

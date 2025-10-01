@@ -4,7 +4,9 @@ import SwiftUI
 struct LLMView: View {
   @StateObject private var viewModel = LLMViewModel()
   @StateObject private var noteViewModel = NoteViewModel()
+  @State private var processingMode: NoteProcessingMode = .insights
   @State private var showInsights = false
+  @State private var showSummary = false
 
   var body: some View {
     NavigationView {
@@ -35,10 +37,10 @@ struct LLMView: View {
       .navigationBarTitleDisplayMode(.inline)
       .toolbar {
         ToolbarItem(placement: .navigationBarTrailing) {
-          Button("Generate Insights") {
-            showInsights = true
+          Button(processingMode == .insights ? "Generate Insights" : "Generate Summary") {
+            handleGenerate()
           }
-          .disabled(!canGenerateInsights)
+          .disabled(!canGenerate)
         }
       }
       .sheet(isPresented: $showInsights) {
@@ -48,6 +50,16 @@ struct LLMView: View {
           onDismiss: {
             noteViewModel.selectedNoteIds.removeAll()
             viewModel.resetInsights()
+          }
+        )
+      }
+      .sheet(isPresented: $showSummary) {
+        SummaryView(
+          notes: noteViewModel.getSelectedNotes(),
+          llmViewModel: viewModel,
+          onDismiss: {
+            noteViewModel.selectedNoteIds.removeAll()
+            viewModel.resetSummary()
           }
         )
       }
@@ -63,7 +75,7 @@ struct LLMView: View {
   // MARK: - Availability Header
 
   private var availabilityHeader: some View {
-    VStack(spacing: 8) {
+    VStack(spacing: 12) {
       HStack {
         Image(systemName: availabilityIcon)
           .foregroundColor(availabilityColor)
@@ -71,7 +83,15 @@ struct LLMView: View {
           .font(.subheadline)
           .foregroundColor(availabilityColor)
       }
-      .padding(.vertical, 8)
+      .padding(.top, 8)
+
+      // Processing Mode Picker
+      Picker("Processing Mode", selection: $processingMode) {
+        Text("Insights").tag(NoteProcessingMode.insights)
+        Text("Summary").tag(NoteProcessingMode.summary)
+      }
+      .pickerStyle(.segmented)
+      .padding(.horizontal)
 
       if noteViewModel.selectedCount > 0 {
         Text("\(noteViewModel.selectedCount) note\(noteViewModel.selectedCount == 1 ? "" : "s") selected")
@@ -81,6 +101,7 @@ struct LLMView: View {
 
       Divider()
     }
+    .padding(.bottom, 8)
   }
 
   // MARK: - Notes List
@@ -174,11 +195,17 @@ struct LLMView: View {
     }
   }
 
-  private var canGenerateInsights: Bool {
-    viewModel.availability == .available &&
-    noteViewModel.selectedCount >= 1 &&
-    noteViewModel.selectedCount <= 10 &&
-    !viewModel.isGeneratingInsights
+  private var canGenerate: Bool {
+    viewModel.availability == .available && noteViewModel.selectedCount >= 1 && noteViewModel.selectedCount <= 10 && !viewModel.isGeneratingInsights && !viewModel.isGeneratingSummary
+  }
+
+  private func handleGenerate() {
+    switch processingMode {
+    case .insights:
+      showInsights = true
+    case .summary:
+      showSummary = true
+    }
   }
 
   // MARK: - Floating Action Button

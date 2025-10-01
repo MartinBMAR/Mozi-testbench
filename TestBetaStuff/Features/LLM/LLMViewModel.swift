@@ -15,6 +15,12 @@ class LLMViewModel: ObservableObject {
   @Published var insightsError: String?
   @Published var isGeneratingInsights: Bool = false
 
+  // MARK: - Summary Properties
+  private let summaryService = SummaryService()
+  @Published var summary: SummaryResponse?
+  @Published var summaryError: String?
+  @Published var isGeneratingSummary: Bool = false
+
   func checkFoundationModelsAvailability() {
     print("lightweight availability check \(model.isAvailable)")
     availability = model.availability
@@ -25,8 +31,8 @@ class LLMViewModel: ObservableObject {
 
   func startLLMSession() {
     Task {
-//      let instructions = ""
-//      let session = LanguageModelSession(instructions: instructions)
+      //      let instructions = ""
+      //      let session = LanguageModelSession(instructions: instructions)
       let session = LanguageModelSession()
       currentSession = session
     }
@@ -70,5 +76,33 @@ class LLMViewModel: ObservableObject {
     insights = nil
     insightsError = nil
     isGeneratingInsights = false
+  }
+
+  // MARK: - Summary Methods
+
+  /// Generate summary from selected notes
+  /// - Parameter notes: Array of notes to summarize
+  @MainActor
+  func generateSummary(from notes: [Note]) async {
+    isGeneratingSummary = true
+    summaryError = nil
+    summary = nil
+
+    do {
+      let response = try await summaryService.generateSummary(from: notes)
+      summary = response
+    } catch {
+      print("Summary generation error: \(error)")
+      summaryError = "Unable to generate summary. Please try again."
+    }
+
+    isGeneratingSummary = false
+  }
+
+  /// Reset summary state
+  func resetSummary() {
+    summary = nil
+    summaryError = nil
+    isGeneratingSummary = false
   }
 }

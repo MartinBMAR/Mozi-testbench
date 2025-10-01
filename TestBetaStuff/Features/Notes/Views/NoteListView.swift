@@ -1,11 +1,18 @@
 import SwiftUI
 import FoundationModels
 
+enum NoteProcessingMode {
+  case insights
+  case summary
+}
+
 struct NoteListView: View {
   @StateObject private var viewModel = NoteViewModel()
   @StateObject private var llmViewModel = LLMViewModel()
 
+  @State private var processingMode: NoteProcessingMode = .insights
   @State private var showInsights = false
+  @State private var showSummary = false
   @State private var showAvailabilityAlert = false
   @State private var showLimitAlert = false
 
@@ -52,11 +59,20 @@ struct NoteListView: View {
           if viewModel.isSelectionMode {
             Spacer()
 
-            VStack(spacing: 4) {
-              Button("Generate Insights") {
-                handleGenerateInsights()
+            VStack(spacing: 8) {
+              // Mode picker
+              Picker("Processing Mode", selection: $processingMode) {
+                Text("Insights").tag(NoteProcessingMode.insights)
+                Text("Summary").tag(NoteProcessingMode.summary)
               }
-              .disabled(!viewModel.canGenerateInsights || llmViewModel.isGeneratingInsights)
+              .pickerStyle(.segmented)
+              .frame(maxWidth: 300)
+
+              // Generate button
+              Button(processingMode == .insights ? "Generate Insights" : "Generate Summary") {
+                handleGenerate()
+              }
+              .disabled(!viewModel.canGenerateInsights || llmViewModel.isGeneratingInsights || llmViewModel.isGeneratingSummary)
 
               HStack(spacing: 4) {
                 Image(systemName: "lock.fill")
@@ -84,10 +100,20 @@ struct NoteListView: View {
           }
         )
       }
+      .sheet(isPresented: $showSummary) {
+        SummaryView(
+          notes: viewModel.getSelectedNotes(),
+          llmViewModel: llmViewModel,
+          onDismiss: {
+            viewModel.toggleSelectionMode()
+            llmViewModel.resetSummary()
+          }
+        )
+      }
       .alert("Apple Intelligence Required", isPresented: $showAvailabilityAlert) {
         Button("OK", role: .cancel) { }
       } message: {
-        Text("Insights require iOS 18.2+ with Apple Intelligence enabled on a compatible device.")
+        Text("AI processing requires iOS 18.2+ with Apple Intelligence enabled on a compatible device.")
       }
       .alert("Too Many Notes Selected", isPresented: $showLimitAlert) {
         Button("OK", role: .cancel) { }
@@ -165,7 +191,7 @@ struct NoteListView: View {
   }
 
   // MARK: - Helper Methods
-  private func handleGenerateInsights() {
+  private func handleGenerate() {
     // Validate count
     if viewModel.selectedCount > 10 {
       showLimitAlert = true
@@ -178,8 +204,13 @@ struct NoteListView: View {
       return
     }
 
-    // All good, show insights
-    showInsights = true
+    // Show appropriate view based on mode
+    switch processingMode {
+    case .insights:
+      showInsights = true
+    case .summary:
+      showSummary = true
+    }
   }
 }
 

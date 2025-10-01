@@ -12,14 +12,14 @@ class InsightsService {
     - ACTION_REMINDER: Follow-ups on stated intentions or time-sensitive matters
     - RELATIONSHIP_HEALTH: Patterns suggesting attention or care needed
     - CONVERSATION_STARTER: Topics to discuss based on interests/situations
-    - THOUGHTFUL_GESTURE: Gift, activity, or gesture ideas from mentioned details
+    - THOUGHTFUL_GESTURE: Activity, or gesture ideas from mentioned details
 
     Guidelines:
-    - Prioritize IRL moments
+    - Prioritize insights that involve meeting the other person in real life
     - Be specific and actionable
     - Reference concrete details from the notes
     - Maintain a supportive, non-judgmental tone
-    - Generate up to 4 insights (one per category if applicable)
+    - Generate at least 2 insights and up to 4 insights (one per category if applicable)
     - If notes lack sufficient context, return empty insights array
     - Priority levels: HIGH (urgent/time-sensitive), MEDIUM (important but not urgent), LOW (nice to have)
     """
@@ -70,10 +70,6 @@ class InsightsService {
         prompt += ", Person: \(note.personName)"
       }
 
-      if let location = note.location, let cityName = location.cityName {
-        prompt += ", Location: \(cityName)"
-      }
-
       prompt += "):\n"
       prompt += "\(note.text)\n\n"
     }
@@ -84,22 +80,21 @@ class InsightsService {
 
     // Add output format instructions
     prompt += """
-    Generate insights as a JSON object with this structure:
-    {
-      "insights": [
-        {
-          "category": "ACTION_REMINDER" | "RELATIONSHIP_HEALTH" | "CONVERSATION_STARTER" | "THOUGHTFUL_GESTURE",
-          "priority": "HIGH" | "MEDIUM" | "LOW",
-          "title": "Brief summary (max 60 characters)",
-          "description": "2-3 sentences explaining the insight",
-          "evidence": "Reference to supporting notes (e.g., 'Note 1, Note 3')",
-          "suggestedAction": "Optional specific next step"
-        }
-      ]
-    }
+      Generate insights as a JSON object with this structure:
+      {
+        "insights": [
+          {
+            "category": "ACTION_REMINDER" | "RELATIONSHIP_HEALTH" | "CONVERSATION_STARTER" | "THOUGHTFUL_GESTURE",
+            "priority": "HIGH" | "MEDIUM" | "LOW",
+            "title": "Brief summary (max 40 characters)",
+            "description": "1-2 sentences explaining the insight",
+            "suggestedAction": "Specific and actionable next step"
+          }
+        ]
+      }
 
-    If notes don't provide enough context, return empty insights array.
-    """
+      If notes don't provide enough context, return empty insights array.
+      """
 
     return prompt
   }

@@ -15,6 +15,7 @@ class NoteViewModel: ObservableObject {
   // MARK: - Services
   let speechRecognizer = SpeechRecognizer()
   let locationManager = LocationManager()
+  private let storageService = NoteStorageService()
 
   // MARK: - Private Properties
   private var cancellables = Set<AnyCancellable>()
@@ -22,6 +23,7 @@ class NoteViewModel: ObservableObject {
   // MARK: - Initialization
   init() {
     setupBindings()
+    loadNotes()
   }
 
   // MARK: - Setup
@@ -61,6 +63,9 @@ class NoteViewModel: ObservableObject {
     notes.insert(note, at: 0) // Add to beginning of array
     print("✓ Note saved: \(note.text.prefix(50))...")
 
+    // Persist to disk
+    saveNotesToDisk()
+
     // Reset state
     currentNoteText = ""
     speechRecognizer.reset()
@@ -73,6 +78,9 @@ class NoteViewModel: ObservableObject {
     let note = notes[index]
     notes.remove(at: index)
     print("🗑️ Note deleted: \(note.text.prefix(50))...")
+
+    // Persist to disk
+    saveNotesToDisk()
   }
 
   func deleteNote(_ note: Note) {
@@ -149,5 +157,26 @@ class NoteViewModel: ObservableObject {
   /// Get count of selected notes
   var selectedCount: Int {
     selectedNoteIds.count
+  }
+
+  // MARK: - Storage Methods
+
+  /// Load notes from persistent storage
+  private func loadNotes() {
+    do {
+      notes = try storageService.loadNotes()
+    } catch {
+      print("❌ Failed to load notes: \(error.localizedDescription)")
+      notes = []
+    }
+  }
+
+  /// Save notes to persistent storage
+  private func saveNotesToDisk() {
+    do {
+      try storageService.saveNotes(notes)
+    } catch {
+      print("❌ Failed to save notes: \(error.localizedDescription)")
+    }
   }
 }
