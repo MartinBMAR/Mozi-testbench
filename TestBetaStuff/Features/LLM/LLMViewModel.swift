@@ -9,6 +9,12 @@ class LLMViewModel: ObservableObject {
   @Published var availability: SystemLanguageModel.Availability?
   @Published var llmResponse: String?
 
+  // MARK: - Insights Properties
+  private let insightsService = InsightsService()
+  @Published var insights: InsightsResponse?
+  @Published var insightsError: String?
+  @Published var isGeneratingInsights: Bool = false
+
   func checkFoundationModelsAvailability() {
     print("lightweight availability check \(model.isAvailable)")
     availability = model.availability
@@ -36,5 +42,33 @@ class LLMViewModel: ObservableObject {
         print("Failed to get LLM response")
       }
     }
+  }
+
+  // MARK: - Insights Methods
+
+  /// Generate insights from selected notes
+  /// - Parameter notes: Array of notes to analyze (1-10 notes)
+  @MainActor
+  func generateInsights(from notes: [Note]) async {
+    isGeneratingInsights = true
+    insightsError = nil
+    insights = nil
+
+    do {
+      let response = try await insightsService.generateInsights(from: notes)
+      insights = response
+    } catch {
+      print("Insights generation error: \(error)")
+      insightsError = "Unable to generate insights. Please try again."
+    }
+
+    isGeneratingInsights = false
+  }
+
+  /// Reset insights state
+  func resetInsights() {
+    insights = nil
+    insightsError = nil
+    isGeneratingInsights = false
   }
 }

@@ -1,7 +1,13 @@
 import SwiftUI
+import FoundationModels
 
 struct NoteListView: View {
   @StateObject private var viewModel = NoteViewModel()
+  @StateObject private var llmViewModel = LLMViewModel()
+
+  @State private var showInsights = false
+  @State private var showAvailabilityAlert = false
+  @State private var showLimitAlert = false
 
   var body: some View {
     NavigationView {
@@ -22,9 +28,71 @@ struct NoteListView: View {
           }
         }
       }
-      .navigationTitle("Notes")
+      .navigationTitle(
+        viewModel.isSelectionMode
+          ? "\(viewModel.selectedCount) Selected"
+          : "Notes"
+      )
+      .toolbar {
+        // Top trailing button
+        ToolbarItem(placement: .navigationBarTrailing) {
+          if viewModel.isSelectionMode {
+            Button("Cancel") {
+              viewModel.toggleSelectionMode()
+            }
+          } else {
+            Button("Select") {
+              viewModel.toggleSelectionMode()
+            }
+          }
+        }
+
+        // Bottom toolbar (only in selection mode)
+        ToolbarItemGroup(placement: .bottomBar) {
+          if viewModel.isSelectionMode {
+            Spacer()
+
+            VStack(spacing: 4) {
+              Button("Generate Insights") {
+                handleGenerateInsights()
+              }
+              .disabled(!viewModel.canGenerateInsights || llmViewModel.isGeneratingInsights)
+
+              HStack(spacing: 4) {
+                Image(systemName: "lock.fill")
+                  .font(.caption2)
+                Text("Analyzed privately on your device")
+                  .font(.caption2)
+              }
+              .foregroundColor(.secondary)
+            }
+
+            Spacer()
+          }
+        }
+      }
       .sheet(isPresented: $viewModel.isCreatingNote) {
         NoteCreationView(viewModel: viewModel)
+      }
+      .sheet(isPresented: $showInsights) {
+        InsightsView(
+          notes: viewModel.getSelectedNotes(),
+          llmViewModel: llmViewModel,
+          onDismiss: {
+            viewModel.toggleSelectionMode()
+            llmViewModel.resetInsights()
+          }
+        )
+      }
+      .alert("Apple Intelligence Required", isPresented: $showAvailabilityAlert) {
+        Button("OK", role: .cancel) { }
+      } message: {
+        Text("Insights require iOS 18.2+ with Apple Intelligence enabled on a compatible device.")
+      }
+      .alert("Too Many Notes Selected", isPresented: $showLimitAlert) {
+        Button("OK", role: .cancel) { }
+      } message: {
+        Text("Please select up to 10 notes for best results. You currently have \(viewModel.selectedCount) selected.")
       }
     }
   }
@@ -52,8 +120,20 @@ struct NoteListView: View {
   private var notesListView: some View {
     List {
       ForEach(viewModel.notes) { note in
-        NoteRowView(note: note)
-          .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+        NoteRowView(
+          note: note,
+          isSelectionMode: viewModel.isSelectionMode,
+          isSelected: viewModel.selectedNoteIds.contains(note.id),
+          onSelect: { viewModel.toggleNoteSelection(note.id) }
+        )
+        .contentShape(Rectangle())
+        .onTapGesture {
+          if viewModel.isSelectionMode {
+            viewModel.toggleNoteSelection(note.id)
+          }
+        }
+        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+          if !viewModel.isSelectionMode {
             Button(role: .destructive) {
               withAnimation {
                 viewModel.deleteNote(note)
@@ -62,6 +142,7 @@ struct NoteListView: View {
               Label("Delete", systemImage: "trash")
             }
           }
+        }
       }
     }
     .listStyle(.plain)
@@ -82,48 +163,95 @@ struct NoteListView: View {
         .shadow(color: .black.opacity(0.3), radius: 8, x: 0, y: 4)
     }
   }
+
+  // MARK: - Helper Methods
+  private func handleGenerateInsights() {
+    // Validate count
+    if viewModel.selectedCount > 10 {
+      showLimitAlert = true
+      return
+    }
+
+    // Check availability
+    if llmViewModel.availability != .available {
+      showAvailabilityAlert = true
+      return
+    }
+
+    // All good, show insights
+    showInsights = true
+  }
 }
 
 // MARK: - Note Row View
 struct NoteRowView: View {
   let note: Note
+  var isSelectionMode: Bool = false
+  var isSelected: Bool = false
+  var onSelect: (() -> Void)? = nil
 
   var body: some View {
-    VStack(alignment: .leading, spacing: 8) {
-      // Note text preview
-      Text(note.text)
-        .font(.body)
-        .lineLimit(3)
+    HStack(spacing: 12) {
+      // Selection checkbox
+      if isSelectionMode {
+        Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
+          .font(.title3)
+          .foregroundColor(isSelected ? .blue : .gray)
+          .onTapGesture {
+            onSelect?()
+          }
+      }
 
-      // Metadata: date and location
-      HStack(spacing: 12) {
-        HStack(spacing: 4) {
-          Image(systemName: "calendar")
-            .font(.caption2)
-          Text(formattedDate)
-            .font(.caption)
-        }
-        .foregroundColor(.secondary)
-
-        if let location = note.location, let cityName = location.cityName {
+      // Note content
+      VStack(alignment: .leading, spacing: 8) {
+        // Person badge (if present)
+        if !note.personName.isEmpty {
           HStack(spacing: 4) {
-            Image(systemName: "location.fill")
+            Image(systemName: "person.circle.fill")
               .font(.caption2)
-            Text(cityName)
+            Text(note.personName)
               .font(.caption)
-              .lineLimit(1)
+              .fontWeight(.medium)
+          }
+          .foregroundColor(.blue)
+        }
+
+        // Note text preview
+        Text(note.text)
+          .font(.body)
+          .lineLimit(3)
+
+        // Metadata: date and location
+        HStack(spacing: 12) {
+          HStack(spacing: 4) {
+            Image(systemName: "calendar")
+              .font(.caption2)
+            Text(formattedDate)
+              .font(.caption)
           }
           .foregroundColor(.secondary)
+
+          if let location = note.location, let cityName = location.cityName {
+            HStack(spacing: 4) {
+              Image(systemName: "location.fill")
+                .font(.caption2)
+              Text(cityName)
+                .font(.caption)
+                .lineLimit(1)
+            }
+            .foregroundColor(.secondary)
+          }
+
+          Spacer()
+
+          Image(systemName: "lock.fill")
+            .font(.caption2)
+            .foregroundColor(.secondary)
         }
-
-        Spacer()
-
-        Image(systemName: "lock.fill")
-          .font(.caption2)
-          .foregroundColor(.secondary)
       }
     }
     .padding(.vertical, 4)
+    .background(isSelected ? Color.blue.opacity(0.1) : Color.clear)
   }
 
   // MARK: - Computed Properties

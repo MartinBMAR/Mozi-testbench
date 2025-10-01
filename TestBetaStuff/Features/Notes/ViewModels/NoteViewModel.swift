@@ -8,6 +8,10 @@ class NoteViewModel: ObservableObject {
   @Published var currentNoteText: String = ""
   @Published var isCreatingNote: Bool = false
 
+  // MARK: - Selection Mode Properties
+  @Published var isSelectionMode: Bool = false
+  @Published var selectedNoteIds: Set<UUID> = []
+
   // MARK: - Services
   let speechRecognizer = SpeechRecognizer()
   let locationManager = LocationManager()
@@ -42,7 +46,7 @@ class NoteViewModel: ObservableObject {
     locationManager.requestLocation()
   }
 
-  func saveNote() {
+  func saveNote(personName: String = "") {
     guard !currentNoteText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
       print("⚠️ Cannot save empty note")
       return
@@ -50,7 +54,8 @@ class NoteViewModel: ObservableObject {
 
     let note = Note(
       text: currentNoteText,
-      location: locationManager.currentLocation
+      location: locationManager.currentLocation,
+      personName: personName.trimmingCharacters(in: .whitespacesAndNewlines)
     )
 
     notes.insert(note, at: 0) // Add to beginning of array
@@ -109,5 +114,40 @@ class NoteViewModel: ObservableObject {
 
   var noteCount: Int {
     notes.count
+  }
+
+  // MARK: - Selection Methods
+
+  /// Toggle selection mode on/off, clearing selection when disabled
+  func toggleSelectionMode() {
+    isSelectionMode.toggle()
+    if !isSelectionMode {
+      selectedNoteIds.removeAll()
+    }
+  }
+
+  /// Toggle individual note selection
+  func toggleNoteSelection(_ noteId: UUID) {
+    if selectedNoteIds.contains(noteId) {
+      selectedNoteIds.remove(noteId)
+    } else {
+      selectedNoteIds.insert(noteId)
+    }
+  }
+
+  /// Get selected notes sorted by date (most recent first)
+  func getSelectedNotes() -> [Note] {
+    notes.filter { selectedNoteIds.contains($0.id) }
+      .sorted { $0.dateCreated > $1.dateCreated }
+  }
+
+  /// Validate selection count (1-10 notes)
+  var canGenerateInsights: Bool {
+    selectedNoteIds.count >= 1 && selectedNoteIds.count <= 10
+  }
+
+  /// Get count of selected notes
+  var selectedCount: Int {
+    selectedNoteIds.count
   }
 }

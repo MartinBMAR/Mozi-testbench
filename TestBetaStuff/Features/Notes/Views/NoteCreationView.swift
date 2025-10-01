@@ -2,6 +2,7 @@ import SwiftUI
 
 struct NoteCreationView: View {
   @ObservedObject var viewModel: NoteViewModel
+  @State private var personName: String = ""
   @FocusState private var isTextFieldFocused: Bool
   @Environment(\.dismiss) private var dismiss
 
@@ -17,6 +18,12 @@ struct NoteCreationView: View {
             if let location = viewModel.locationManager.currentLocation {
               locationView(location: location)
             }
+
+            // Person name field
+            TextField("Person name (optional)", text: $personName)
+              .textFieldStyle(.roundedBorder)
+              .autocorrectionDisabled()
+              .textInputAutocapitalization(.words)
 
             // Text Input
             textEditorView
@@ -39,7 +46,7 @@ struct NoteCreationView: View {
 
         ToolbarItem(placement: .navigationBarTrailing) {
           Button("Save") {
-            viewModel.saveNote()
+            viewModel.saveNote(personName: personName)
             dismiss()
           }
           .disabled(!viewModel.canSaveNote)
