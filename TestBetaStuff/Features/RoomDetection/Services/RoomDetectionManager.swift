@@ -199,7 +199,10 @@ class RoomDetectionManager: NSObject {
         )
 
         locationManager.startMonitoring(for: monitorRegion)
-        locationManager.startRangingBeacons(in: monitorRegion)
+
+        // Use the new iOS 13+ API with CLBeaconIdentityConstraint
+        let constraint = CLBeaconIdentityConstraint(uuid: Self.appBeaconUUID)
+        locationManager.startRangingBeacons(satisfying: constraint)
         log("👀 Started monitoring for beacons")
     }
 
@@ -287,10 +290,9 @@ class RoomDetectionManager: NSObject {
 // MARK: - CLLocationManagerDelegate
 
 extension RoomDetectionManager: CLLocationManagerDelegate {
-
     func locationManager(_ manager: CLLocationManager, didRange beacons: [CLBeacon], satisfying beaconConstraint: CLBeaconIdentityConstraint) {
         for beacon in beacons {
-          let userId = majorToUserId(UInt16(beacon.major))
+          let userId = majorToUserId(UInt16(truncating: beacon.major))
 
             // Skip our own beacon
             if userId == userProfile.id {

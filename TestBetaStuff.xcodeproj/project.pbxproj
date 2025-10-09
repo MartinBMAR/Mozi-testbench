@@ -10,9 +10,22 @@
 		DC73DF2A2E02DA55006597E6 /* TestBetaStuff.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TestBetaStuff.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		DCCFDB7C2E9816510035155D /* Exceptions for "TestBetaStuff" folder in "TestBetaStuff" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = DC73DF292E02DA55006597E6 /* TestBetaStuff */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		DC73DF2C2E02DA55006597E6 /* TestBetaStuff */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				DCCFDB7C2E9816510035155D /* Exceptions for "TestBetaStuff" folder in "TestBetaStuff" target */,
+			);
 			path = TestBetaStuff;
 			sourceTree = "<group>";
 		};
@@ -256,6 +269,8 @@
 				DEVELOPMENT_TEAM = BYW43F5Q3V;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = TestBetaStuff/Info.plist;
+				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "This app uses the local network to discover and connect\n     with nearby friends for room detection.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "This app needs access to your location to tag notes with your current location.";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "This app needs access to the microphone to record voice notes.";
 				INFOPLIST_KEY_NSRemindersFullAccessUsageDescription = "This app needs access to your reminders to create actionable tasks from insights about your notes.";
@@ -291,6 +306,8 @@
 				DEVELOPMENT_TEAM = BYW43F5Q3V;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = TestBetaStuff/Info.plist;
+				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "This app uses the local network to discover and connect\n     with nearby friends for room detection.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "This app needs access to your location to tag notes with your current location.";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "This app needs access to the microphone to record voice notes.";
 				INFOPLIST_KEY_NSRemindersFullAccessUsageDescription = "This app needs access to your reminders to create actionable tasks from insights about your notes.";
