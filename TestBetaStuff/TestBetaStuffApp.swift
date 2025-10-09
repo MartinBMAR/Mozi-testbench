@@ -4,10 +4,17 @@ import SwiftUI
 struct TestBetaStuffApp: App {
   var body: some Scene {
     WindowGroup {
-      LLMView()
-        .tabItem {
-          Label("LLM", systemImage: "brain.head.profile")
-        }
+      TabView {
+        LLMView()
+          .tabItem {
+            Label("LLM", systemImage: "brain.head.profile")
+          }
+
+        RoomDetectionView()
+          .tabItem {
+            Label("Room Detection", systemImage: "antenna.radiowaves.left.and.right")
+          }
+      }
     }
   }
 }
