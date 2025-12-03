@@ -14,6 +14,11 @@ struct TestBetaStuffApp: App {
           .tabItem {
             Label("Room Detection", systemImage: "antenna.radiowaves.left.and.right")
           }
+        
+        Suggestions()
+          .tabItem {
+            Label("Suggestions", systemImage: "antenna.radiowaves.left.and.right")
+          }
       }
     }
   }

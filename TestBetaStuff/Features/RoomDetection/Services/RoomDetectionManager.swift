@@ -45,7 +45,6 @@ class RoomDetectionManager: NSObject {
     init(userProfile: UserProfile) {
         self.userProfile = userProfile
         super.init()
-
         setupLocationManager()
         setupMultipeer()
     }
