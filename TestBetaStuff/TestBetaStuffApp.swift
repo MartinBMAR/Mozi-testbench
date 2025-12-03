@@ -19,6 +19,11 @@ struct TestBetaStuffApp: App {
           .tabItem {
             Label("Suggestions", systemImage: "antenna.radiowaves.left.and.right")
           }
+
+        MomentsTestbenchView()
+          .tabItem {
+            Label("Moments", systemImage: "sparkles")
+          }
       }
     }
   }

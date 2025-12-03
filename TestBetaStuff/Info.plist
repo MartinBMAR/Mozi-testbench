@@ -7,5 +7,7 @@
 		<string>_testbeta-room._tcp</string>
 		<string>_testbeta-room._udp</string>
 	</array>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>This app needs access to your photo library to display recent photos for Moments features.</string>
 </dict>
 </plist>
