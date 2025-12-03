@@ -9,5 +9,7 @@
 	</array>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>This app needs access to your photo library to display recent photos for Moments features.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>This app needs your location to compare with photo locations and show photos taken nearby.</string>
 </dict>
 </plist>

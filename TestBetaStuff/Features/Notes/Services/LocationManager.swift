@@ -5,6 +5,7 @@ import Combine
 class LocationManager: NSObject, ObservableObject {
   // MARK: - Published Properties
   @Published var currentLocation: NoteLocation?
+  @Published var rawLocation: CLLocation?
   @Published var isAuthorized: Bool = false
   @Published var authorizationStatus: CLAuthorizationStatus = .notDetermined
 
@@ -55,6 +56,29 @@ class LocationManager: NSObject, ObservableObject {
 
     print("📍 Requesting location...")
     locationManager.requestLocation()
+  }
+
+  /// Create a CLLocation from coordinates
+  static func location(from coordinate: CLLocationCoordinate2D) -> CLLocation {
+    CLLocation(latitude: coordinate.latitude, longitude: coordinate.longitude)
+  }
+
+  /// Reverse geocode a coordinate to get city name
+  func reverseGeocode(coordinate: CLLocationCoordinate2D, completion: @escaping (String?) -> Void) {
+    let location = CLLocation(latitude: coordinate.latitude, longitude: coordinate.longitude)
+    geocoder.reverseGeocodeLocation(location) { [weak self] placemarks, error in
+      if let error = error {
+        print("❌ Geocoding error: \(error.localizedDescription)")
+        completion(nil)
+        return
+      }
+      if let placemark = placemarks?.first {
+        let cityName = self?.formatPlacemark(placemark)
+        completion(cityName)
+      } else {
+        completion(nil)
+      }
+    }
   }
 
   // MARK: - Reverse Geocoding
@@ -114,6 +138,7 @@ extension LocationManager: CLLocationManagerDelegate {
   func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
     guard let location = locations.last else { return }
     print("📍 Location updated: \(location.coordinate.latitude), \(location.coordinate.longitude)")
+    rawLocation = location
     reverseGeocodeLocation(location)
   }
 
